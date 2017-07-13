@@ -1,4 +1,6 @@
+require "net/ldap"
 require "cul/ldap/version"
+require "cul/ldap/entry"
 
 module Cul
   class LDAP

@@ -4,7 +4,7 @@ class Cul::LDAP::Entry < SimpleDelegator
   end
 
   def email
-    (mail.blank?) ? "#{uid.first}@columbia.edu" : mail.first
+    (mail.empty?) ? "#{uid.first}@columbia.edu" : mail.first
   end
 
   def first_name
@@ -19,9 +19,11 @@ class Cul::LDAP::Entry < SimpleDelegator
     ou.first
   end
 
-  # def uni
-  # end
+  def uni
+    super.first
+  end
 
-  # uni method
-  # p.title = (entry[:title].kind_of?(Array) ? entry[:title].first : entry[:title]).to_s
+  def title
+    super.first
+  end
 end

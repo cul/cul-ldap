@@ -1,8 +1,6 @@
 # Cul::LDAP
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/cul/ldap`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Gem for CUL's common queries to CU's LDAP server. This is just a starting point with one query that is commonly needed. Needs some work to build out new functionality. Uses net-ldap to make queries. Cul::LDAP could be delegated to Net::LDAP if more functionality like the one already implemented there is required.
 
 ## Installation
 
@@ -22,7 +20,11 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```
+require 'cul/ldap'
+ldap = Cul::LDAP.new
+entry = ldap.find_by_uni("abc123")
+```
 
 ## Development
 
