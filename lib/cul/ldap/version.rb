@@ -1,5 +1,7 @@
 module Cul
-  class LDAP
-    VERSION = "0.1.0"
+  module LDAP
+    module Version
+      STRING = "0.0.1"
+    end
   end
 end
