@@ -1,7 +1,9 @@
+require "net/ldap"
+
 module Cul
-  module LDAP
-    module Version
-      STRING = "0.0.1"
+  class LDAP < Net::LDAP
+    def self.version
+      IO.read("VERSION").strip
     end
   end
 end

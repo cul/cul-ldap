@@ -1,11 +1,10 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'cul/ldap/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "cul-ldap"
-  spec.version       = Cul::LDAP::Version::STRING
+  spec.version       = IO.read("VERSION").strip
   spec.authors       = ["Carla Galarza"]
   spec.email         = ["cmg2228@columbia.edu"]
 

@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Cul::LDAP do
   it "has a version number" do
-    expect(Cul::LDAP::VERSION).not_to be nil
+    expect(Cul::LDAP.version).not_to be nil
   end
 
   describe '.new' do
