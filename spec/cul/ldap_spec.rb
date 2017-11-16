@@ -23,10 +23,6 @@ describe Cul::LDAP do
     end
 
     context 'when credentials are provided within Rails' do
-      # before :each do
-      #   allow_any_instance_of(Cul::LDAP).to receive(:rails_credentials).and_return(credentials)
-      # end
-
       subject { Cul::LDAP.new }
 
       it 'ignores creds if config empty' do
