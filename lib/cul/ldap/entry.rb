@@ -3,31 +3,31 @@ require 'delegate'
 module Cul
   class LDAP::Entry < SimpleDelegator
     def name
-      cn.first
+      self[:cn].first
     end
 
     def email
-      (mail.empty?) ? "#{uid.first}@columbia.edu" : mail.first
+      (self[:mail].empty?) ? "#{uni}@columbia.edu" : mail.first
     end
 
     def first_name
-      givenname.first
+      self[:givenname].first
     end
 
     def last_name
-      sn.first
+      self[:sn].first
     end
 
     def organizational_unit
-      ou.first
+      self[:ou].first
     end
 
     def uni
-      super.first
+      self[:uni].first
     end
 
     def title
-      super.first
+      self[:title].first
     end
   end
 end
