@@ -24,6 +24,7 @@ Or install it yourself as:
 require 'cul/ldap'
 ldap = Cul::LDAP.new
 entry = ldap.find_by_uni("abc123")
+entry = ldap.find_by_name("Doe, Jane")
 ```
 
 ## Development
@@ -34,7 +35,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/cul-ldap.
+Bug reports and pull requests are welcome on GitHub at https://github.com/cul/cul-ldap.
 
 
 ## License
