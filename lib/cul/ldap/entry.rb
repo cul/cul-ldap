@@ -1,3 +1,5 @@
+require 'delegate'
+
 module Cul
   class LDAP::Entry < SimpleDelegator
     def name
