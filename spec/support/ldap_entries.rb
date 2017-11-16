@@ -25,5 +25,7 @@ objectClass: eduPerson}
       )
   end
 
-  let(:ldap_entries) { [ldap_entry] }
+  let(:ldap_entries) {
+    [Cul::LDAP::Entry.new(ldap_entry)]
+  }
 end
