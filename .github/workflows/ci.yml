@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ['2.3.3', '2.7.5']
+        ruby-version: ['3.2.9', '3.3.9']
     env:
       NOKOGIRI_USE_SYSTEM_LIBRARIES: true
 
@@ -21,7 +21,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          bundler: 1.13.7 # we want to use a specific version of bundler when testing this gem
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - name: Run CI task
         run: bundle exec rspec spec
