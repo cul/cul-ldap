@@ -18,7 +18,7 @@ Or install it yourself as:
 
     $ gem install cul-ldap
 
-## Usage
+## Standalone Gem Usage
 
 ```
 require 'cul/ldap'
@@ -26,6 +26,25 @@ ldap = Cul::LDAP.new
 entry = ldap.find_by_uni("abc123")
 entry = ldap.find_by_name("Doe, Jane")
 ```
+
+## Rails app usage
+
+If you're using cul-ldap in a Rails app, you can create a configuration file at config/cul_ldap.yml that looks like this:
+
+```
+development:
+  host: your-ldap-server.example.com
+  port: 636
+  encryption: simple_tls
+  auth:
+    method: simple,
+    username: "username", # Distinguished Name (DN)
+    password: "password"
+```
+
+The configuration options here are the same ones supported by the Net::LDAP#initialize method.  Cul::LDAP is built on top of Net::LDAP.
+
+Since this file will contain a username and password, remember to .gitignore this file in your repository.
 
 ## Development
 
