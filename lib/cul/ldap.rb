@@ -16,6 +16,9 @@ module Cul
       }
     }.freeze
 
+    # Create a new Cul::LDAP object
+    # @param options [Hash] A set of Net::LDAP constructor options.  See Net::LDAP#initialize for
+    #                       the full set of supported options.
     def initialize(options = {})
       super(build_config(options)) # All keys have to be symbols.
     end
@@ -27,7 +30,7 @@ module Cul
     # @return [nil] if record for uni could not be found, or more than one record was found
     def find_by_uni(uni)
       entries = search(base: "ou=People,o=Columbia University, c=US", filter: Net::LDAP::Filter.eq("uid", uni))
-      (entries.count == 1) ? entries.first : nil
+      (entries && entries.count == 1) ? entries.first : nil
     end
 
     # LDAP lookup based on name.
