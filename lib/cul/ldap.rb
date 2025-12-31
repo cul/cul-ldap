@@ -13,7 +13,8 @@ module Cul
       encryption: {
         method: :simple_tls,
         tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
-      }
+      },
+      auth: nil
     }.freeze
 
     # Create a new Cul::LDAP object
@@ -59,33 +60,31 @@ module Cul
     private
 
     def build_config(options)
-      config = CONFIG_DEFAULTS.merge(options)
-      credentials = config.fetch(:auth, nil)
-      credentials = nil if !credentials.nil? && credentials.empty?
+      config = CONFIG_DEFAULTS.dup
 
-      # If rails app fetch credentials using rails code, otherwise read from
-      # cul_ldap.yml if credentials are nil.
-      if credentials.nil?
-        credentials = rails_credentials || credentials_from_file
-        credentials = nil if !credentials.nil? && credentials.empty?
-      end
+      # If a cul_ldap.yml config file is found, merge in those settings first
+      options_from_config_file = options_from_rails_config || options_from_file_config
 
-      unless credentials.nil?
-        credentials = credentials.map { |k, v| [k.to_sym, v] }.to_h
-        credentials[:method] = :simple unless credentials.key?(:method)
-      end
+      config = config.merge(options_from_config_file) if options_from_config_file
 
-      config[:auth] = credentials
+      # Then merge in any settings supplies by options
+      config = config.merge(options) if options
+
+      # If auth method has been supplied as a string, convert it to a symbol
+      config[:auth][:method] = :simple if config[:auth] && config.dig(:auth, :method) == 'simple'
+
       config
     end
 
-    def credentials_from_file
+    def options_from_file_config
       (File.exist?(CONFIG_FILENAME)) ? YAML.load_file(CONFIG_FILENAME) : nil
     end
 
-    def rails_credentials
+    def options_from_rails_config
       if defined?(Rails.application.config_for) && File.exist?(File.join(Rails.root, 'config', CONFIG_FILENAME))
-        raise "Missing cul-ldap credentials in config/#{CONFIG_FILENAME}" if Rails.application.config_for(:cul_ldap).empty?
+        if Rails.application.config_for(CONFIG_FILENAME.gsub(/.yml$/, '').to_sym).empty?
+          raise "Missing cul-ldap configuration in config/#{CONFIG_FILENAME}"
+        end
         Rails.application.config_for(:cul_ldap)
       else
         nil
