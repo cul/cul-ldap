@@ -18,33 +18,40 @@ Or install it yourself as:
 
     $ gem install cul-ldap
 
-## Standalone Gem Usage
+## Usage
+
+Users must provide a full configuration including the cul LDAP server host, port, and auth credentials. This can be done by passing a hash object to the class initializer, or by including a `cul_ldap.yml` file.
+
+The configuration options here are the same ones supported by the Net::LDAP#initialize method.  Cul::LDAP is built on top of Net::LDAP. [See the Net::LDAP#initialize documentation here](https://www.rubydoc.info/gems/ruby-net-ldap/Net/LDAP#initialize-instance_method).
+
+
+Since this file will contain a username and password, remember to .gitignore this file in your repository.
+
+```
+host: 'ldap.columbia.edu'                   # Required.
+port: 636                                   # Required. Standard port for simple-tls encrypted ldap connections.
+encryption: simple_tls
+auth:                                       # Required (all fields).
+    method: simple
+    username: "USERNAME"
+    password: "PASSWORD"
+```
+
+### Usage in Rails
+If you are using this gem in a rails context, we recommend creating a `config/cul_ldap.yml` file with your desired configuration. It will be read by the gem automatically.
+
+### Standalone Gem Usage
 
 ```
 require 'cul/ldap'
-ldap = Cul::LDAP.new
+ldap = Cul::LDAP.new                        # Assuming you have a proper cul_ldap.yml file
 entry = ldap.find_by_uni("abc123")
 entry = ldap.find_by_name("Doe, Jane")
 ```
 
-## Rails app usage
+### Rails app usage
 
-If you're using cul-ldap in a Rails app, you can create a configuration file at config/cul_ldap.yml that looks like this:
-
-```
-development:
-  host: your-ldap-server.example.com
-  port: 636
-  encryption: simple_tls
-  auth:
-    method: simple,
-    username: "username", # Distinguished Name (DN)
-    password: "password"
-```
-
-The configuration options here are the same ones supported by the Net::LDAP#initialize method.  Cul::LDAP is built on top of Net::LDAP.
-
-Since this file will contain a username and password, remember to .gitignore this file in your repository.
+If you're using cul-ldap in a Rails app, you can create a configuration file at `config/cul_ldap.yml` that looks the one at the top of this section.
 
 ## Development
 

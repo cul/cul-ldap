@@ -2,20 +2,20 @@ require "net/ldap"
 require "yaml"
 
 require "cul/ldap/version"
+require "cul/ldap/exceptions"
 require "cul/ldap/entry"
 
 module Cul
   class LDAP < Net::LDAP
     CONFIG_FILENAME = 'cul_ldap.yml'
     CONFIG_DEFAULTS = {
-      host: 'ldap.columbia.edu',
-      port: '636',
       encryption: {
         method: :simple_tls,
         tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
       },
-      auth: nil
     }.freeze
+    REQUIRED_OPTS = [ :host, :port, :auth ].freeze
+    REQUIRED_AUTH_OPTS = [ :method, :username, :password ].freeze
 
     # Create a new Cul::LDAP object
     # @param options [Hash] A set of Net::LDAP constructor options.  See Net::LDAP#initialize for
@@ -50,10 +50,21 @@ module Cul
     # Wrapper around Net::LDAP#search, converts Net::LDAP::Entry objects to
     # Cul::LDAP::Entry objects.
     def search(args = {})
-      super(args).tap do |result|
+      search_res = super(args).tap do |result|
         if result.is_a?(Array)
           result.map!{ |e| Cul::LDAP::Entry.new(e) }
         end
+      end
+
+      # If a username and password were provided, the query will return a result no matter what. Check if auth failed:
+      check_operation_result
+
+      search_res
+    end
+
+    def check_operation_result
+      if get_operation_result.code == 50
+        raise NoAuthError, 'LDAP Error: Insufficient access rights (code 50). Make sure you provide a proper username and password for authentication.'
       end
     end
 
@@ -72,6 +83,9 @@ module Cul
 
       # If auth method has been supplied as a string, convert it to a symbol
       config[:auth][:method] = :simple if config[:auth] && config.dig(:auth, :method) == 'simple'
+      
+      # If any required information is missing from the options, raise an error
+      validate_config(config)
 
       config
     end
@@ -88,6 +102,17 @@ module Cul
         Rails.application.config_for(:cul_ldap)
       else
         nil
+      end
+    end
+
+    def validate_config(config)
+      REQUIRED_OPTS.each do |opt|
+        raise InvalidOptionError, "Missing required cul-ldap configuration option: #{opt}" unless config.has_key? opt
+      end
+      
+      # Validate nested auth options
+      REQUIRED_AUTH_OPTS.each do |auth_opt|
+        raise InvalidOptionError, "Missing required cul-ldap configuration option: :auth=> { #{auth_opt} }" unless config[:auth].has_key? auth_opt
       end
     end
   end
