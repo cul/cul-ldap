@@ -20,13 +20,53 @@ Or install it yourself as:
 
 ## Usage
 
+Users must provide a full configuration including the cul LDAP server host, port, and auth credentials. This can be done by passing a hash object to the class initializer, or by including a `cul_ldap.yml` file.
+
+The configuration options here are the same ones supported by the Net::LDAP#initialize method.  Cul::LDAP is built on top of Net::LDAP. [See the Net::LDAP#initialize documentation here](https://www.rubydoc.info/gems/ruby-net-ldap/Net/LDAP#initialize-instance_method).
+
+
+Since this file will contain a username and password, remember to .gitignore this file in your repository.
+
+```
+host: 'servername'                   # Required.
+port: 636                                   # Required. Standard port for simple-tls encrypted ldap connections.
+encryption: simple_tls
+auth:                                       # Required (all fields).
+    method: simple
+    username: "USERNAME"
+    password: "PASSWORD"
+```
+
+**❗You can use the information in [this confluence page](https://columbiauniversitylibraries.atlassian.net/wiki/spaces/USGSERVICES/pages/10947594/LDAP+Lookup+including+affiliations+via+privileged+lookup#Using-a-secure-%E2%80%9Cldaps%3A%2F%2F%E2%80%9D-connection-(recommended)%3A) to fill out the username and password credentials here.❗**
+
+### Standalone Gem Usage
+
 ```
 require 'cul/ldap'
-ldap = Cul::LDAP.new
+ldap = Cul::LDAP.new                        # Assuming you have a proper cul_ldap.yml file
 entry = ldap.find_by_uni("abc123")
 entry = ldap.find_by_name("Doe, Jane")
 ```
 
+### Rails app usage
+
+If you're using cul-ldap in a Rails app, you can create a configuration file at `config/cul_ldap.yml` that looks the one at the top of this section.  It will be read automatically.
+
+## Common Errors Troubleshooting
+Cul::LDAP will raise an error if any of the expected configuration options are missing when an instance is initialized. It only validates that they are present, nothing else; if there is a misconfigured option or a different error, an underlying call to the Net::LDAP gem will likely be the one to raise it.
+
+#### Cul::LDAP errors:
+- **InvalidOptionError**: You are missing a configuration option (in cul_ldap.yml or in the option hash passed to new)
+- **AuthError: Cul::LDAP**: was able to make the request to the LDAP service, but received a response indicating invalid credentials (user/pass). The exact error will be printed.
+    - code 49: bad username
+    - code 50: bad username and password
+    - code 53: bad password
+
+#### Other common error cases:
+- **Net::LDAP:Error: Operation timed out**: The request never received a response. Could be a network error.
+- **Net::LDAP::Error: getaddrinfo**: invalid host url
+- **Errno::ECONNREFUSED: Connection refused**: invalid host url - usually when it is an empty string (in which case Net::LDAP will set host to 0.0.0.0)
+- **Errno::ECONNRESET: Connection reset by peer**: unknown/invalid `encryption` option was given.
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

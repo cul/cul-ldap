@@ -2,20 +2,24 @@ require "net/ldap"
 require "yaml"
 
 require "cul/ldap/version"
+require "cul/ldap/exceptions"
 require "cul/ldap/entry"
 
 module Cul
   class LDAP < Net::LDAP
     CONFIG_FILENAME = 'cul_ldap.yml'
     CONFIG_DEFAULTS = {
-      host: 'ldap.columbia.edu',
-      port: '636',
       encryption: {
         method: :simple_tls,
         tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
-      }
+      },
     }.freeze
+    REQUIRED_OPTS = [ :host, :port, :auth ].freeze
+    REQUIRED_AUTH_OPTS = [ :method, :username, :password ].freeze
 
+    # Create a new Cul::LDAP object
+    # @param options [Hash] A set of Net::LDAP constructor options.  See Net::LDAP#initialize for
+    #                       the full set of supported options.
     def initialize(options = {})
       super(build_config(options)) # All keys have to be symbols.
     end
@@ -27,7 +31,7 @@ module Cul
     # @return [nil] if record for uni could not be found, or more than one record was found
     def find_by_uni(uni)
       entries = search(base: "ou=People,o=Columbia University, c=US", filter: Net::LDAP::Filter.eq("uid", uni))
-      (entries.count == 1) ? entries.first : nil
+      (entries && entries.count == 1) ? entries.first : nil
     end
 
     # LDAP lookup based on name.
@@ -46,46 +50,72 @@ module Cul
     # Wrapper around Net::LDAP#search, converts Net::LDAP::Entry objects to
     # Cul::LDAP::Entry objects.
     def search(args = {})
-      super(args).tap do |result|
+      search_res = super(args).tap do |result|
         if result.is_a?(Array)
           result.map!{ |e| Cul::LDAP::Entry.new(e) }
         end
+      end
+
+      # If a username and password were provided, the query will return a result no matter what. Check if auth failed:
+      check_operation_result
+
+      search_res
+    end
+
+    # Checks for some common error cases that the user can easily remidy (all auth errors)
+    # For all LDAP operation result codes and their meanings: https://ldap.com/ldap-result-code-reference/
+    def check_operation_result
+      operation_result = get_operation_result
+      if [49, 50, 53].include? operation_result.code
+        raise Exceptions::AuthError, "LDAP Error: (code #{operation_result.code}) '#{operation_result.error_message}' Make sure you provide a proper username and password for authentication."
       end
     end
 
     private
 
     def build_config(options)
-      config = CONFIG_DEFAULTS.merge(options)
-      credentials = config.fetch(:auth, nil)
-      credentials = nil if !credentials.nil? && credentials.empty?
+      config = CONFIG_DEFAULTS.dup
 
-      # If rails app fetch credentials using rails code, otherwise read from
-      # cul_ldap.yml if credentials are nil.
-      if credentials.nil?
-        credentials = rails_credentials || credentials_from_file
-        credentials = nil if !credentials.nil? && credentials.empty?
-      end
+      # If a cul_ldap.yml config file is found, merge in those settings first
+      options_from_config_file = options_from_rails_config || options_from_file_config
 
-      unless credentials.nil?
-        credentials = credentials.map { |k, v| [k.to_sym, v] }.to_h
-        credentials[:method] = :simple unless credentials.key?(:method)
-      end
+      config = config.merge(options_from_config_file) if options_from_config_file
 
-      config[:auth] = credentials
+      # Then merge in any settings supplies by options
+      config = config.merge(options) if options
+
+      # If auth method has been supplied as a string, convert it to a symbol
+      config[:auth][:method] = :simple if config[:auth] && config.dig(:auth, :method) == 'simple'
+      
+      # If any required information is missing from the options, raise an error
+      validate_config(config)
+
       config
     end
 
-    def credentials_from_file
+    def options_from_file_config
       (File.exist?(CONFIG_FILENAME)) ? YAML.load_file(CONFIG_FILENAME) : nil
     end
 
-    def rails_credentials
+    def options_from_rails_config
       if defined?(Rails.application.config_for) && File.exist?(File.join(Rails.root, 'config', CONFIG_FILENAME))
-        raise "Missing cul-ldap credentials in config/#{CONFIG_FILENAME}" if Rails.application.config_for(:cul_ldap).empty?
+        if Rails.application.config_for(CONFIG_FILENAME.gsub(/.yml$/, '').to_sym).empty?
+          raise "Missing cul-ldap configuration in config/#{CONFIG_FILENAME}"
+        end
         Rails.application.config_for(:cul_ldap)
       else
         nil
+      end
+    end
+
+    def validate_config(config)
+      REQUIRED_OPTS.each do |opt|
+        raise Exceptions::InvalidOptionError, "Missing required cul-ldap configuration option: #{opt}" unless config.has_key? opt
+      end
+      
+      # Validate nested auth options
+      REQUIRED_AUTH_OPTS.each do |auth_opt|
+        raise Exceptions::InvalidOptionError, "Missing required cul-ldap configuration option: :auth=> { #{auth_opt} }" unless config[:auth].has_key? auth_opt
       end
     end
   end
