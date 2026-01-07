@@ -22,15 +22,15 @@ describe Cul::LDAP do
       end
     end
 
-    context 'when auth options are provided within Rails' do
-      it 'raises invalid option error if options hash is empty' do
+    context 'when a Rails context is detected and a Rails config file is present' do
+      it 'raises invalid option error if config file options hash is empty' do
         allow_any_instance_of(Cul::LDAP).to receive(:options_from_rails_config).and_return({})
         expect{ empty_subject }.to raise_error(Cul::LDAP::Exceptions::InvalidOptionError)
       end
 
       it 'successfully stores auth options' do
         allow_any_instance_of(Cul::LDAP).to receive(:options_from_rails_config).and_return(test_config)
-        expect( 
+        expect(
           empty_subject.instance_variable_get(:@auth)
         ).to include(username: "testuser", password: "notavalidpassword", method: :simple)
       end
@@ -49,22 +49,22 @@ describe Cul::LDAP do
       end
     end
 
-    context 'when auth options are provided in arguments' do
+    context 'when a config file provides some options, but does not provide auth option' do
       before do
         partial_options = { host: 'test.ldap.com', port: 636 } # Everything except :auth hash
         allow_any_instance_of(Cul::LDAP).to receive(:options_from_rails_config).and_return(nil)
         allow_any_instance_of(Cul::LDAP).to receive(:options_from_file_config).and_return(partial_options)
       end
 
-      it 'raises an InvalidOptionError if auth hash not provided' do
+      it 'raises an InvalidOptionError if auth option is not provided as a constructor argument' do
         expect{ empty_subject }.to raise_error(Cul::LDAP::Exceptions::InvalidOptionError)
       end
 
-      it 'raises an InvalidOptionError if auth hash has missing values' do
+      it 'raises an InvalidOptionError if auth hash is provided as a constructor argument but has missing values' do
         expect{ Cul::LDAP.new(auth: { username: 'notenough' }) }.to raise_error(Cul::LDAP::Exceptions::InvalidOptionError)
       end
 
-      it 'successfully stores auth options' do
+      it 'successfully stores auth option if a valid auth option is provided as a constructor argument' do
         ldap = Cul::LDAP.new(auth: auth_options)
         expect(
           ldap.instance_variable_get(:@auth)
