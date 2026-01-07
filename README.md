@@ -39,9 +39,6 @@ auth:                                       # Required (all fields).
 
 **❗You can use the information in [this confluence page](https://columbiauniversitylibraries.atlassian.net/wiki/spaces/USGSERVICES/pages/10947594/LDAP+Lookup+including+affiliations+via+privileged+lookup#Using-a-secure-%E2%80%9Cldaps%3A%2F%2F%E2%80%9D-connection-(recommended)%3A) to fill out the username and password credentials here.❗**
 
-### Usage in Rails
-If you are using this gem in a rails context, we recommend creating a `config/cul_ldap.yml` file with your desired configuration. It will be read by the gem automatically.
-
 ### Standalone Gem Usage
 
 ```
@@ -53,19 +50,19 @@ entry = ldap.find_by_name("Doe, Jane")
 
 ### Rails app usage
 
-If you're using cul-ldap in a Rails app, you can create a configuration file at `config/cul_ldap.yml` that looks the one at the top of this section.
+If you're using cul-ldap in a Rails app, you can create a configuration file at `config/cul_ldap.yml` that looks the one at the top of this section.  It will be read automatically.
 
 ## Common Errors Troubleshooting
-Cul::LDAP will raise an error if any of the expected configuration options are missing when an instance is initialized. It only validates that they are present, nothing else; if there is a misconfigured option or a different error, the Net::LDAP gem will likely be the one to raise it.
+Cul::LDAP will raise an error if any of the expected configuration options are missing when an instance is initialized. It only validates that they are present, nothing else; if there is a misconfigured option or a different error, an underlying call to the Net::LDAP gem will likely be the one to raise it.
 
-Cul::LDAP errors:
+#### Cul::LDAP errors:
 - **InvalidOptionError**: You are missing a configuration option (in cul_ldap.yml or in the option hash passed to new)
 - **AuthError: Cul::LDAP**: was able to make the request to the LDAP service, but received a response indicating invalid credentials (user/pass). The exact error will be printed.
     - code 49: bad username
     - code 50: bad username and password
     - code 53: bad password
 
-Other common error cases:
+#### Other common error cases:
 - **Net::LDAP:Error: Operation timed out**: The request never received a response. Could be a network error.
 - **Net::LDAP::Error: getaddrinfo**: invalid host url
 - **Errno::ECONNREFUSED: Connection refused**: invalid host url - usually when it is an empty string (in which case Net::LDAP will set host to 0.0.0.0)
