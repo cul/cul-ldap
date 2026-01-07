@@ -18,15 +18,14 @@ describe Cul::LDAP do
   describe '.new' do
     context 'when credientials are not provided' do
       it 'raises an invalid option error' do
-        expect{ empty_subject }.to raise_error(InvalidOptionError, "Missing required cul-ldap configuration option: host")
+        expect{ empty_subject }.to raise_error(Cul::LDAP::Exceptions::InvalidOptionError, "Missing required cul-ldap configuration option: host")
       end
     end
 
     context 'when auth options are provided within Rails' do
       it 'raises invalid option error if options hash is empty' do
         allow_any_instance_of(Cul::LDAP).to receive(:options_from_rails_config).and_return({})
-        expect{ empty_subject }.to raise_error()
-        # expect(subject.instance_variable_get(:@auth)).to eql Net::LDAP::DefaultAuth
+        expect{ empty_subject }.to raise_error(Cul::LDAP::Exceptions::InvalidOptionError)
       end
 
       it 'successfully stores auth options' do
@@ -58,11 +57,11 @@ describe Cul::LDAP do
       end
 
       it 'raises an InvalidOptionError if auth hash not provided' do
-        expect{ empty_subject }.to raise_error(InvalidOptionError)
+        expect{ empty_subject }.to raise_error(Cul::LDAP::Exceptions::InvalidOptionError)
       end
 
       it 'raises an InvalidOptionError if auth hash has missing values' do
-        expect{ Cul::LDAP.new(auth: { username: 'notenough' }) }.to raise_error(InvalidOptionError)
+        expect{ Cul::LDAP.new(auth: { username: 'notenough' }) }.to raise_error(Cul::LDAP::Exceptions::InvalidOptionError)
       end
 
       it 'successfully stores auth options' do
@@ -101,11 +100,11 @@ describe Cul::LDAP do
   describe '#check_operation_result' do
     it 'raises a AuthError if the response has code 50 (Insufficient Access Rights)' do
       allow_any_instance_of(Cul::LDAP).to receive(:get_operation_result).and_return OpenStruct.new( code: 50, error_message: 'Insufficient Access Rights')
-      expect{ subject.check_operation_result }.to raise_error(AuthError)
+      expect{ subject.check_operation_result }.to raise_error(Cul::LDAP::Exceptions::AuthError)
     end
     it 'does not raise an AuthError if code is not one of 49, 50, or 53' do
       allow_any_instance_of(Cul::LDAP).to receive(:get_operation_result).and_return OpenStruct.new( code: 0 )
-      expect{ subject.check_operation_result }.not_to raise_error(AuthError)
+      expect{ subject.check_operation_result }.not_to raise_error(Cul::LDAP::Exceptions::AuthError)
     end
   end
 end

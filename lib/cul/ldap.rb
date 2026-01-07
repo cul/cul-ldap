@@ -67,7 +67,7 @@ module Cul
     def check_operation_result
       operation_result = get_operation_result
       if [49, 50, 53].include? operation_result.code
-        raise AuthError, "LDAP Error: (code #{operation_result.code}) '#{operation_result.error_message}' Make sure you provide a proper username and password for authentication."
+        raise Exceptions::AuthError, "LDAP Error: (code #{operation_result.code}) '#{operation_result.error_message}' Make sure you provide a proper username and password for authentication."
       end
     end
 
@@ -110,12 +110,12 @@ module Cul
 
     def validate_config(config)
       REQUIRED_OPTS.each do |opt|
-        raise InvalidOptionError, "Missing required cul-ldap configuration option: #{opt}" unless config.has_key? opt
+        raise Exceptions::InvalidOptionError, "Missing required cul-ldap configuration option: #{opt}" unless config.has_key? opt
       end
       
       # Validate nested auth options
       REQUIRED_AUTH_OPTS.each do |auth_opt|
-        raise InvalidOptionError, "Missing required cul-ldap configuration option: :auth=> { #{auth_opt} }" unless config[:auth].has_key? auth_opt
+        raise Exceptions::InvalidOptionError, "Missing required cul-ldap configuration option: :auth=> { #{auth_opt} }" unless config[:auth].has_key? auth_opt
       end
     end
   end
