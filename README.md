@@ -28,7 +28,7 @@ The configuration options here are the same ones supported by the Net::LDAP#init
 Since this file will contain a username and password, remember to .gitignore this file in your repository.
 
 ```
-host: 'ldap.columbia.edu'                   # Required.
+host: 'servername'                   # Required.
 port: 636                                   # Required. Standard port for simple-tls encrypted ldap connections.
 encryption: simple_tls
 auth:                                       # Required (all fields).
@@ -36,6 +36,8 @@ auth:                                       # Required (all fields).
     username: "USERNAME"
     password: "PASSWORD"
 ```
+
+**❗You can use the information in [this confluence page](https://columbiauniversitylibraries.atlassian.net/wiki/spaces/USGSERVICES/pages/10947594/LDAP+Lookup+including+affiliations+via+privileged+lookup#Using-a-secure-%E2%80%9Cldaps%3A%2F%2F%E2%80%9D-connection-(recommended)%3A) to fill out the username and password credentials here.❗**
 
 ### Usage in Rails
 If you are using this gem in a rails context, we recommend creating a `config/cul_ldap.yml` file with your desired configuration. It will be read by the gem automatically.
