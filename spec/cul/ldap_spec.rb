@@ -99,9 +99,13 @@ describe Cul::LDAP do
   end
 
   describe '#check_operation_result' do
-    it 'raises a NoAuthError if the response has code 50 (Insufficient Access Rights)' do
-      allow_any_instance_of(Cul::LDAP).to receive(:get_operation_result).and_return OpenStruct.new( code: 50 )
-      expect{ subject.check_operation_result }.to raise_error(NoAuthError)
+    it 'raises a AuthError if the response has code 50 (Insufficient Access Rights)' do
+      allow_any_instance_of(Cul::LDAP).to receive(:get_operation_result).and_return OpenStruct.new( code: 50, error_message: 'Insufficient Access Rights')
+      expect{ subject.check_operation_result }.to raise_error(AuthError)
+    end
+    it 'does not raise an AuthError if code is not one of 49, 50, or 53' do
+      allow_any_instance_of(Cul::LDAP).to receive(:get_operation_result).and_return OpenStruct.new( code: 0 )
+      expect{ subject.check_operation_result }.not_to raise_error(AuthError)
     end
   end
 end

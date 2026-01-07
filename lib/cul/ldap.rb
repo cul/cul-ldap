@@ -62,9 +62,12 @@ module Cul
       search_res
     end
 
+    # Checks for some common error cases that the user can easily remidy (all auth errors)
+    # For all LDAP operation result codes and their meanings: https://ldap.com/ldap-result-code-reference/
     def check_operation_result
-      if get_operation_result.code == 50
-        raise NoAuthError, 'LDAP Error: Insufficient access rights (code 50). Make sure you provide a proper username and password for authentication.'
+      operation_result = get_operation_result
+      if [49, 50, 53].include? operation_result.code
+        raise AuthError, "LDAP Error: (code #{operation_result.code}) '#{operation_result.error_message}' Make sure you provide a proper username and password for authentication."
       end
     end
 
