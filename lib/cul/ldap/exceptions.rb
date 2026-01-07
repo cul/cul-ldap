@@ -1,2 +1,5 @@
-class AuthError < StandardError; end
-class InvalidOptionError < StandardError; end
+module Cul::LDAP::Exceptions
+  class Error < StandardError; end
+  class AuthError < Error; end
+  class InvalidOptionError < Error; end
+end
